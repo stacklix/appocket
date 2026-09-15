@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#243e35">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Appocket">
+  <title>Appocket · 应用口袋</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f6f7f2; color: #243e35; font: 16px/1.7 system-ui, sans-serif; }
+    main { max-width: 880px; margin: 12vh auto; padding: 24px; }
+    .label { letter-spacing: .18em; font-size: 13px; }
+    h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.2; margin-bottom: 20px; }
+    p { color: #62736b; }
+    a { display: block; margin-top: 48px; padding: 30px; background: white; border: 1px solid #d9e1d9; border-radius: 24px; color: inherit; text-decoration: none; }
+    a:hover, a:focus-visible { outline: 2px solid #527563; outline-offset: 4px; }
+    h2 { margin: 0; }
+    a p { margin: 12px 0 24px; }
+    span { font-weight: 600; }
+  </style>
+</head>
+<body><main>
+  <div class="label">APPOCKET / 应用口袋</div>
+  <h1>你的应用，都在口袋里。</h1>
+  <p>选择一个应用开始使用。将 Appocket 添加到主屏幕，下次从这里出发。</p>
+  <section aria-label="全部应用"><h2 style="margin-top:40px;font-size:16px">全部应用 <small style="color:#62736b">· 1</small></h2><a href="/sentra/"><h2>Sentra · 句子学习</h2>
+    <p>翻译一句话，理清语法，找到更地道的表达。学习记录保存在当前设备。</p>
+    <span>进入应用 →</span>
+  </a></section>
+</main>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(console.warn);
+}
+</script>
+</body>
+</html>
