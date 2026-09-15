@@ -54,6 +54,7 @@ jobs:
           test -s dist/sw.js
           test -s dist/sentra/sw.js
           touch dist/.nojekyll
+          printf '%s\n' 'appocket.stackli.me' > dist/CNAME
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

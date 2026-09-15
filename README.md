@@ -57,3 +57,5 @@ node scripts/check-pwa.cjs
 构建成功后，仅将 `dist/` 的静态产物推送到 `gh-pages` 分支根目录，并添加 `.nojekyll`。每次生成一个无父提交的新提交，强制替换 `gh-pages`：该分支始终只有一条可达提交记录；`main` 保留正常源码历史。失败的构建不更新 `gh-pages`。工作流串行发布，使用内置 `GITHUB_TOKEN`，无需额外 Secret；仓库规则须允许 Actions 写入并强推 `gh-pages`。
 
 这里只构建并更新产物分支，不自动配置 GitHub Pages。GitHub 官方说明：使用 `GITHUB_TOKEN` 推送的提交不会触发分支式 Pages 构建（[发布源说明](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)）。目前产物使用域名根路径部署；若托管到 `stacklix.github.io/appocket/`，需另行适配 `/appocket/` 基础路径。
+
+自定义域名为 `appocket.stackli.me`。发布流程每次都会在 `gh-pages` 根目录生成 `CNAME`（内容为该域名），因此覆盖产物分支时不会丢失域名文件。
