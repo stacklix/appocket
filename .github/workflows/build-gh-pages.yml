@@ -1,0 +1,72 @@
+name: Build and publish gh-pages branch
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-gh-pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.3'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: sentra
+        run: flutter pub get --enforce-lockfile
+
+      - name: Analyze and test
+        working-directory: sentra
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Build applications
+        run: python3 scripts/build.py
+
+      - name: Replace gh-pages branch with a single commit
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -s dist/sentra/main.dart.js
+          test -s dist/sw.js
+          test -s dist/sentra/sw.js
+          touch dist/.nojekyll
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # A separate index stages only dist; commit-tree without -p creates
+          # a root commit, so gh-pages always has exactly one reachable commit.
+          export GIT_DIR="$PWD/.git"
+          export GIT_WORK_TREE="$PWD/dist"
+          export GIT_INDEX_FILE="$RUNNER_TEMP/gh-pages-index"
+          trap 'rm -f "$GIT_INDEX_FILE"' EXIT
+          git read-tree --empty
+          cd "$GIT_WORK_TREE"
+          git add --all -- .
+          tree=$(git write-tree)
+          commit=$(git commit-tree "$tree" -m "Build from $SOURCE_SHA")
+          git push --force origin "$commit:refs/heads/gh-pages"
