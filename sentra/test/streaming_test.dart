@@ -215,7 +215,10 @@ void main() {
       );
       await tester.pump();
       expect(find.text('逐段解释继续出现').hitTestable(), findsOneWidget);
-      final tail = jsonEncode(fixtures[AiAction.translate]).substring(1);
+      final tail = jsonEncode({
+        ...fixtures[AiAction.translate]!,
+        'translation_language': '英语',
+      }).substring(1);
       bytes.add(
         utf8.encode(
           event({

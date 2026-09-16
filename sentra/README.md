@@ -33,3 +33,9 @@ Service worker 仅缓存构建时枚举的静态资源，不缓存模型请求�
 采用自有 service worker，避免依赖 Flutter 已弃用的自动生成机制，参见 [Flutter Web FAQ](https://docs.flutter.dev/platform-integration/web/faq)。
 
 中文界面字体随应用打包，使用 Noto Sans CJK SC（SIL Open Font License，见 `assets/fonts/OFL.txt`），确保离线中文可读。其他语言的罕见字符仍可能依赖 Flutter 联网回退字体。
+
+## 结果与复制
+
+三个功能在生成中按 JSON 字段逐步填充结果卡片，收到完整响应后仍进行原有结构校验；不完整预览不保存为学习结果。翻译和地道表达中的正文随页面自然展开，每条表达旁的复制按钮只复制该条文本，底部复制保留完整结果。三个 Tab 的输入框均可复制当前输入。
+
+翻译目标仅提供英语、日语、俄语、希腊语，默认英语；旧设置中其他目标语言会回退到英语，已有历史内容保留。各 Tab 顶部的宣传标题及说明已移除。

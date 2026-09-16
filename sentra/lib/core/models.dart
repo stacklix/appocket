@@ -25,7 +25,7 @@ class ApiSettings {
     this.baseUrl = '',
     this.model = '',
     this.token = '',
-    this.translationLanguage = '简体中文',
+    this.translationLanguage = '英语',
     this.explanationLanguage = '简体中文',
     this.level = '中级',
   });
@@ -326,25 +326,11 @@ String languageCode(String value) => switch (value.trim().toLowerCase()) {
   '意大利语' || 'italian' || 'it' => 'it',
   '葡萄牙语' || 'portuguese' || 'pt' => 'pt',
   '俄语' || 'russian' || 'ru' => 'ru',
+  '希腊语' || 'greek' || 'el' || 'el-gr' || 'ελληνικά' => 'el',
   '阿拉伯语' || 'arabic' || 'ar' => 'ar',
   '泰语' || 'thai' || 'th' => 'th',
   '越南语' || 'vietnamese' || 'vi' => 'vi',
   _ => value.trim().toLowerCase(),
 };
 
-const translationLanguages = [
-  '简体中文',
-  '繁體中文',
-  '英语',
-  '日语',
-  '韩语',
-  '法语',
-  '德语',
-  '西班牙语',
-  '意大利语',
-  '葡萄牙语',
-  '俄语',
-  '阿拉伯语',
-  '泰语',
-  '越南语',
-];
+const translationLanguages = ['英语', '日语', '俄语', '希腊语'];

@@ -86,7 +86,7 @@ void main() {
       final app = AppController(storage: MemoryStorage(), gateway: gateway);
       await app.initialize();
       await tester.pumpWidget(SentraApp(controller: app));
-      expect(find.text('让意思，跨越语言。'), findsOneWidget);
+      expect(find.text('让意思，跨越语言。'), findsNothing);
       await tester.enterText(
         find.byKey(const Key('sentence-input')),
         '昨日映画を見ます。',

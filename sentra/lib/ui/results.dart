@@ -87,9 +87,9 @@ class ResultCard extends StatelessWidget {
               AnalysisPhase.connecting => '正在等待模型响应…',
               null => '正在生成…',
             }, style: const TextStyle(color: muted)),
-            if (streamPreview(progress).isNotEmpty) ...[
+            if (partialResult(progress).isNotEmpty) ...[
               const SizedBox(height: 12),
-              SelectableText(streamPreview(progress)),
+              ..._content(partialResult(progress)),
             ],
           ],
           if (result != null && !loading) ...[
@@ -103,7 +103,7 @@ class ResultCard extends StatelessWidget {
                 '旧版结果 · 使用生成时的分析规则',
                 style: TextStyle(color: muted, fontSize: 12),
               ),
-            ..._content(result!),
+            ..._content(result!.data),
             const Divider(),
             Row(
               children: [
@@ -144,8 +144,8 @@ class ResultCard extends StatelessWidget {
     switch (r.action) {
       case AiAction.translate:
         return [
-          if (d['translation_language'] != null)
-            '${d['source_language']} → ${d['translation_language']}',
+          if (d['translation_language'] is String)
+            '${d['source_language'] ?? ''} → ${d['translation_language']}',
           ...(d['translations'] as List).map(
             (v) => '${_label(v['type'])}：${v['text']}',
           ),
@@ -153,7 +153,7 @@ class ResultCard extends StatelessWidget {
         ].join('\n\n');
       case AiAction.grammar:
         return [
-          if (d['analysis_text'] != null)
+          if (d['analysis_text'] is String)
             '${d['analysis_origin'] == 'translation' ? '分析对象（根据原意生成的译文）' : '分析对象（用户原句）'}：${d['analysis_text']}',
           d['summary'],
           ...(d['corrections'] as List).map(
@@ -169,7 +169,7 @@ class ResultCard extends StatelessWidget {
         ].join('\n\n');
       case AiAction.improve:
         return [
-          if (d['reference_text'] != null)
+          if (d['reference_text'] is String)
             '${d['reference_origin'] == 'translation' ? '参考译文' : '原句'}：${d['reference_text']}',
           if (d['input_in_learning_language'] != false) d['naturalness'],
           ...(d['alternatives'] as List).map(
@@ -182,6 +182,7 @@ class ResultCard extends StatelessWidget {
 
   String _label(String value) =>
       const {
+        '': '表达',
         'direct': '直译',
         'natural': '更地道的说法',
         'contextual': '根据语境',
@@ -201,19 +202,86 @@ class ResultCard extends StatelessWidget {
       ),
     ),
   );
-  List<Widget> _content(AnalysisResult result) {
-    final d = result.data;
+  Widget _copyCaption(String label, String text) => Row(
+    children: [
+      Expanded(child: _caption(label)),
+      Builder(
+        builder: (context) => IconButton(
+          tooltip: '复制$label',
+          onPressed: text.isEmpty
+              ? null
+              : () async {
+                  try {
+                    await Clipboard.setData(ClipboardData(text: text));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('文本已复制')));
+                    }
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('复制失败，请重试')));
+                    }
+                  }
+                },
+          icon: const Icon(Icons.copy_outlined, size: 18),
+        ),
+      ),
+    ],
+  );
+
+  List<Widget> _content(Map<String, dynamic> raw) {
+    // Normalize only the presentation snapshot; missing fields stay empty.
+    final d = <String, dynamic>{...raw};
+    for (final field in ['summary', 'naturalness']) {
+      d[field] = raw[field] is String ? raw[field] : '';
+    }
+    for (final field in [
+      'translations',
+      'corrections',
+      'structure',
+      'grammar_points',
+      'alternatives',
+    ]) {
+      d[field] = [
+        for (final item in (raw[field] is List ? raw[field] as List : const []))
+          if (item is Map)
+            <String, dynamic>{
+              for (final key in [
+                'type',
+                'style',
+                'text',
+                'original',
+                'corrected',
+                'explanation',
+                'part',
+                'role',
+                'title',
+                'translation',
+              ])
+                key: item[key] is String ? item[key] : '',
+              'inflections': item['inflections'] is List
+                  ? (item['inflections'] as List).whereType<String>().toList()
+                  : <String>[],
+            },
+      ];
+    }
+    d['notes'] = raw['notes'] is List
+        ? (raw['notes'] as List).whereType<String>().toList()
+        : <String>[];
     switch (action) {
       case AiAction.translate:
         return [
-          if (d['translation_language'] != null)
+          if (d['translation_language'] is String)
             Text(
-              '${d['source_language']} → ${d['translation_language']}',
+              '${d['source_language'] ?? ''} → ${d['translation_language']}',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           for (final v in d['translations']) ...[
-            _caption(_label(v['type'] as String)),
-            SelectableText(
+            _copyCaption(_label(v['type'] as String), v['text'] as String),
+            Text(
               v['text'] as String,
               style: TextStyle(fontSize: compact ? 17 : 21, height: 1.5),
             ),
@@ -226,13 +294,13 @@ class ResultCard extends StatelessWidget {
         ];
       case AiAction.grammar:
         return [
-          if (d['analysis_text'] != null) ...[
+          if (d['analysis_text'] is String) ...[
             _caption(
               d['analysis_origin'] == 'translation'
                   ? '分析对象 · 根据原意生成的译文'
                   : '分析对象 · 用户原句',
             ),
-            SelectableText(
+            Text(
               d['analysis_text'] as String,
               style: const TextStyle(fontSize: 19, height: 1.5),
             ),
@@ -248,15 +316,15 @@ class ResultCard extends StatelessWidget {
               '发现语法错误 · ${(d['corrections'] as List).length} 处',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            Text(d['summary'] as String),
           ],
+          if ((d['summary'] as String).isNotEmpty) Text(d['summary'] as String),
           for (final v in d['corrections']) ...[
             _caption('错误与修改'),
-            SelectableText(
+            Text(
               '原文：${v['original']}',
               style: const TextStyle(color: Color(0xFFAD4F3D)),
             ),
-            SelectableText(
+            Text(
               '改为：${v['corrected']}',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
@@ -301,7 +369,7 @@ class ResultCard extends StatelessWidget {
                           horizontal: 10,
                           vertical: 10,
                         ),
-                        child: SelectableText(
+                        child: Text(
                           v[field] as String,
                           style: TextStyle(
                             fontSize: 13,
@@ -322,7 +390,7 @@ class ResultCard extends StatelessWidget {
             if ((v['inflections'] as List).isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: SelectableText(
+                child: Text(
                   (v['inflections'] as List).join('\n↓\n'),
                   style: const TextStyle(height: 1.7),
                 ),
@@ -331,11 +399,11 @@ class ResultCard extends StatelessWidget {
         ];
       case AiAction.improve:
         return [
-          if (d['reference_text'] != null) ...[
+          if (d['reference_text'] is String) ...[
             _caption(
               d['reference_origin'] == 'translation' ? '参考译文 · 根据原意生成' : '原句',
             ),
-            SelectableText(
+            Text(
               d['reference_text'] as String,
               style: const TextStyle(fontSize: 19, height: 1.5),
             ),
@@ -345,12 +413,12 @@ class ResultCard extends StatelessWidget {
             const Text('根据你想表达的意思，给出不同场景的说法。')
           else
             Text(
-              '自然度：${d['naturalness']}',
+              d['naturalness'] == '' ? '' : '自然度：${d['naturalness']}',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           for (final v in d['alternatives']) ...[
-            _caption(_label(v['style'] as String)),
-            SelectableText(
+            _copyCaption(_label(v['style'] as String), v['text'] as String),
+            Text(
               v['text'] as String,
               style: const TextStyle(fontSize: 19, height: 1.5),
             ),

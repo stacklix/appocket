@@ -26,9 +26,10 @@ class _HomePageState extends State<HomePage> {
   AiAction get action => app.activeAction;
   String get explanationLanguage =>
       app.current?.explanationLanguage ?? app.settings.explanationLanguage;
-  String get targetLanguage => app.current?.learningVersion == 3
-      ? app.current!.translationLanguage
-      : app.settings.translationLanguage;
+  String get targetLanguage =>
+      translationLanguages.contains(app.settings.translationLanguage)
+      ? app.settings.translationLanguage
+      : '英语';
   @override
   void initState() {
     super.initState();
@@ -405,10 +406,9 @@ class _HomePageState extends State<HomePage> {
           ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
           : null,
     ),
-    items: {
-      ...translationLanguages,
-      targetLanguage,
-    }.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+    items: translationLanguages
+        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+        .toList(),
     onChanged: savingTarget ? null : (value) => changeTarget(value!),
   );
 
@@ -433,38 +433,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
         ]
-      : [
-          Text(
-            action.english,
-            style: const TextStyle(
-              fontSize: 10,
-              letterSpacing: 1.7,
-              color: muted,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            switch (action) {
-              AiAction.translate => '让意思，跨越语言。',
-              AiAction.grammar => '读懂句子的结构。',
-              AiAction.improve => '找到更自然的说法。',
-            },
-            style: const TextStyle(
-              fontSize: 30,
-              height: 1.35,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -.6,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(switch (action) {
-            AiAction.translate => '选择目标语言，先看直译，再看更地道的说法。',
-            AiAction.grammar => '先检查并指出语法错误，再分析句子结构。',
-            AiAction.improve => '保留原文语言和含义，比较不同语气与场景。',
-          }, style: const TextStyle(color: muted, fontSize: 13)),
-          const SizedBox(height: 24),
-        ];
+      : [];
   List<Widget> inputWidgets() => [
     if (app.notice != null)
       Container(
@@ -585,6 +554,31 @@ class _HomePageState extends State<HomePage> {
                         : 'I go to the cinema yesterday.',
                   ),
                   child: const Text('试试例句'),
+                ),
+                IconButton(
+                  key: const Key('copy-input'),
+                  tooltip: '复制输入',
+                  onPressed: input.text.isEmpty
+                      ? null
+                      : () async {
+                          try {
+                            await Clipboard.setData(
+                              ClipboardData(text: input.text),
+                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('输入已复制')),
+                              );
+                            }
+                          } catch (_) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('复制失败，请重试')),
+                              );
+                            }
+                          }
+                        },
+                  icon: const Icon(Icons.copy_outlined, size: 18),
                 ),
                 IconButton(
                   tooltip: '清空当前输入',

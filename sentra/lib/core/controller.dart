@@ -43,6 +43,9 @@ class AppController extends ChangeNotifier {
   Future<void> initialize() async {
     try {
       settings = await storage.readSettings();
+      if (!translationLanguages.contains(settings.translationLanguage)) {
+        settings = settings.withTranslationLanguage('英语');
+      }
     } catch (_) {
       notice = '无法读取连接设置，请重新配置。';
     }
@@ -109,13 +112,23 @@ class AppController extends ChangeNotifier {
 
   Future<void> run(AiAction action, {bool force = false}) async {
     if (draft.trim().isEmpty || !settings.ready || !historyAvailable) return;
+    if (action == AiAction.translate &&
+        !translationLanguages.contains(settings.translationLanguage)) {
+      settings = settings.withTranslationLanguage('英语');
+    }
     final text = draft.trim();
     if (text.length > 4000) {
       notice = '每次最多输入 4000 个字符。';
       notifyListeners();
       return;
     }
-    if (current != null && current!.learningVersion < 3) current = null;
+    if (current != null &&
+        (current!.learningVersion < 3 ||
+            (action == AiAction.translate &&
+                current!.translationLanguage !=
+                    settings.translationLanguage))) {
+      current = null;
+    }
     current ??= history
         .where(
           (s) =>
