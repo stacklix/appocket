@@ -31,21 +31,8 @@ worker = worker.replace('__FILES__', json.dumps(files))
 shutil.copyfile(ROOT / 'index.html', ROOT / 'dist' / 'index.html')
 print(f'Built {output}; precached {len(files)} files.')
 
-# The launcher is a PWA itself. Its worker caches only the launcher allowlist,
-# and lets requests to unvisited sub-apps reach the network unchanged.
-launcher_files = ['index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png']
-for name in launcher_files:
-    target = ROOT / 'dist' / name
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(ROOT / name, target)
-launcher_template = template.replace('`sentra:${ROOT}:`', '`appocket:${ROOT}:`')
-launcher_template = launcher_template.replace(
-    "const target = request.mode === 'navigate'",
-    "const target = request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')")
-launcher_digest = hashlib.sha256(launcher_template.encode())
-for name in launcher_files:
-    launcher_digest.update((ROOT / name).read_bytes())
-launcher_worker = launcher_template.replace('__VERSION__', json.dumps(launcher_digest.hexdigest()[:16]))
-launcher_worker = launcher_worker.replace('__FILES__', json.dumps(launcher_files))
-(ROOT / 'dist' / 'sw.js').write_text(launcher_worker)
-print('Built Appocket launcher PWA.')
+# Appocket is a directory; keep a retirement worker for existing installations.
+shutil.copytree(ROOT / 'icons', ROOT / 'dist' / 'icons', dirs_exist_ok=True)
+(ROOT / 'dist' / 'manifest.json').unlink(missing_ok=True)
+shutil.copyfile(ROOT / 'scripts' / 'retire-root-sw.js', ROOT / 'dist' / 'sw.js')
+print('Built Appocket app directory.')

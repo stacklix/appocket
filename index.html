@@ -4,10 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#243e35">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Appocket">
+  <link rel="icon" href="/icons/icon-192.png">
   <title>Appocket · 应用口袋</title>
   <style>
     * { box-sizing: border-box; }
@@ -26,7 +23,7 @@
 <body><main>
   <div class="label">APPOCKET / 应用口袋</div>
   <h1>你的应用，都在口袋里。</h1>
-  <p>选择一个应用开始使用。将 Appocket 添加到主屏幕，下次从这里出发。</p>
+  <p>发现轻巧好用的 PWA。选择应用，独立使用，也可以将喜欢的应用添加到主屏幕。</p>
   <section aria-label="全部应用"><h2 style="margin-top:40px;font-size:16px">全部应用 <small style="color:#62736b">· 1</small></h2><a href="/sentra/"><h2>Sentra · 句子学习</h2>
     <p>翻译一句话，理清语法，找到更地道的表达。学习记录保存在当前设备。</p>
     <span>进入应用 →</span>
@@ -34,7 +31,12 @@
 </main>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(console.warn);
+  // Upgrade the legacy homepage worker only for existing users.
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (const registration of registrations) {
+      if (registration.scope === location.origin + '/') registration.update().catch(console.warn);
+    }
+  }).catch(console.warn);
 }
 </script>
 </body>

@@ -1,6 +1,6 @@
 # Appocket
 
-Appocket 是统一入口 PWA：安装并打开 Appocket 后，先展示全部应用，选择 Sentra 进入使用；子应用顶部的“Appocket · 全部应用”返回入口。当前已接入 Sentra，后续应用继续加入列表。
+Appocket 是 PWA 应用导航目录，类似应用市场。用户从目录进入 Sentra 等独立子应用，在各应用内安装和使用；子应用不提供返回目录的按钮。
 
 ## 子应用
 
@@ -30,7 +30,7 @@ python3 -m http.server 8080 --bind 127.0.0.1 --directory dist
 - 首次联网打开后，service worker 下载完整静态资源（含 Flutter 引擎与字体）；缓存完成后可断网重新打开并阅读已有记录。首次缓存需要一定时间，浏览器清理站点数据后需重新联网缓存。
 - 新分析仍需要网络、用户自己的 API Token，以及允许浏览器 CORS 的服务商。
 - 更新在旧版本的所有窗口关闭后生效；重新打开即可使用新版本。缓存名称包含子应用 scope 和构建内容哈希，不清理其他应用缓存。
-- Appocket 自身可以安装，启动地址为 `/`，离线可打开应用列表。入口缓存仅包含首页与安装资源，不把子应用请求替换为首页。Sentra 使用更具体的 `/sentra/` service worker 与独立缓存。尚未联网打开并完成缓存的子应用需要联网首次加载。
+- Appocket 首页是普通导航网页；Sentra 独立安装、离线运行。旧版首页的 service worker 会自动退出，只清理 `appocket:` 缓存，保留子应用缓存和学习数据。
 
 ## 验证
 
@@ -42,9 +42,10 @@ flutter test --platform chrome test/web_storage_test.dart
 cd ..
 # 预览服务器启动后，需本机 Chrome 及可被 Node 解析的 playwright 包：
 node scripts/check-pwa.cjs
+node scripts/check-retirement.cjs
 ```
 
-浏览器检查覆盖 manifest、缓存落地、断网重载、入口首次进入 Sentra、两者离线重载、离线选择应用及从子应用返回入口。
+浏览器检查覆盖从目录进入 Sentra、子应用 manifest、缓存落地、断网重载，以及手机和桌面均无返回目录按钮。
 
 ## 后续添加应用
 

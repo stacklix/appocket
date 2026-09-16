@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import '../core/controller.dart';
-import '../core/launcher.dart';
 import '../core/models.dart';
 import '../main.dart';
 import 'results.dart';
@@ -189,12 +188,6 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (kIsWeb)
-                    TextButton.icon(
-                      onPressed: openLauncher,
-                      icon: const Icon(Icons.apps_rounded, size: 18),
-                      label: const Text('全部应用'),
-                    ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(12, 0, 0, 20),
                     child: Text(
@@ -333,12 +326,6 @@ class _HomePageState extends State<HomePage> {
               tooltip: '返回',
               onPressed: () => setState(() => showHistory = false),
               icon: const Icon(Icons.arrow_back),
-            )
-          : kIsWeb
-          ? IconButton(
-              tooltip: 'Appocket · 全部应用',
-              onPressed: openLauncher,
-              icon: const Icon(Icons.apps_rounded),
             )
           : null,
       title: Text(
