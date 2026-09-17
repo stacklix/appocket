@@ -6,3 +6,9 @@ dist/
 coverage/
 .idea/
 *.iml
+node_modules/
+.local/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+ios/Appocket/Resources/BuiltinModules/

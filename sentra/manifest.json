@@ -1,0 +1,1 @@
+{"id":"sentra","name":"Sentra","description":"从一句话开始，理解另一种语言。翻译、语法与地道表达。","version":"1.0.0","entry":"index.html","minHostVersion":"1.0.0","bridgeVersion":1,"stateSchemaVersion":1,"allowedOrigins":["https://api.openai.com","https://api.anthropic.com"]}

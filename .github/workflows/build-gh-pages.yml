@@ -19,42 +19,49 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write
+      pages: write
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          flutter-version: '3.38.3'
-          channel: stable
-          cache: true
+          node-version: '24'
+          cache: npm
 
-      - name: Install dependencies
-        working-directory: sentra
-        run: flutter pub get --enforce-lockfile
-
-      - name: Analyze and test
-        working-directory: sentra
+      - name: Install and test
         run: |
-          flutter analyze
-          flutter test
+          npm ci
+          npm run typecheck
+          npm test
 
       - name: Build applications
-        run: python3 scripts/build.py
+        env:
+          MODULE_BASE_URL: https://appocket.stackli.me
+        run: |
+          npm run build
+          npm run verify:release
+
+      - name: Save release files
+        uses: actions/upload-artifact@v4
+        with:
+          name: lingrove-release
+          path: dist/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Replace gh-pages branch with a single commit
+        id: publish
         env:
           SOURCE_SHA: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           test -s dist/index.html
-          test -s dist/sentra/main.dart.js
+          test -s dist/catalog.json
           test -s dist/sw.js
-          test -s dist/sentra/sw.js
-          touch dist/.nojekyll
-          printf '%s\n' 'appocket.stackli.me' > dist/CNAME
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -71,3 +78,31 @@ jobs:
           tree=$(git write-tree)
           commit=$(git commit-tree "$tree" -m "Build from $SOURCE_SHA")
           git push --force origin "$commit:refs/heads/gh-pages"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+      - name: Build and verify GitHub Pages
+        timeout-minutes: 6
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ steps.publish.outputs.commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # GITHUB_TOKEN pushes do not trigger branch-based Pages builds.
+          build_url=$(gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" --jq '.url')
+          for attempt in {1..30}; do
+            build=$(gh api "$build_url")
+            status=$(jq -r '.status' <<< "$build")
+            commit=$(jq -r '.commit' <<< "$build")
+            if [ "$commit" = "$RELEASE_COMMIT" ] && [ "$status" = "built" ]; then
+              echo "Published catalog.json, ZIP packages and browser applications." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [ "$commit" = "$RELEASE_COMMIT" ] && [ "$status" = "errored" ]; then
+              jq -r '.error.message' <<< "$build"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for Pages to build release $RELEASE_COMMIT"
+          exit 1

@@ -1,0 +1,21 @@
+{
+  "name": "lingrove",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "sentra",
+    "packages/host-sdk"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w sentra",
+    "typecheck": "npm run typecheck -w sentra",
+    "test": "npm run test -w sentra",
+    "build": "node scripts/build-modules.mjs",
+    "check": "npm run typecheck && npm test && npm run build && npm run verify:release",
+    "format": "prettier --write sentra/src sentra/tests packages/host-sdk/src scripts/package-modules.mjs",
+    "verify:release": "python3 scripts/verify-release.py"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.7"
+  }
+}
