@@ -2,7 +2,7 @@
 
 SwiftUI 原生语言学习宿主（iOS 17+），使用 WKWebView 运行可独立更新的 Vue 3 + TypeScript + Vite 子应用。第一个子应用为重写后的 **Sentra**：翻译、语法分析、地道表达、流式结果、学习记录和服务商设置。没有 Lingrove 账号或登录服务。
 
-应用对外名称为 **Lingrove**，子应用仍为 **Sentra**。为兼容现有安装和发布配置，工程路径、Bundle ID、SDK 命名空间、本地数据目录及 `appocket.stackli.me` 更新域名保持不变。
+应用对外名称为 **Lingrove**，子应用仍为 **Sentra**。为兼容现有安装和发布配置，工程路径、Bundle ID、SDK 命名空间及本地数据目录保持不变；更新域名使用 `lingrove.stackli.me`。
 
 ## 运行
 
@@ -39,7 +39,7 @@ Xcode 项目已提交，不需要安装工程生成器。先运行 `npm run buil
 
 ## 配置自动更新
 
-App 默认从 `https://appocket.stackli.me/catalog.json` 检查更新；首次发布前接口不可用时，仍可使用内置 Sentra。更换部署地址时按以下步骤修改。
+App 默认从 `https://lingrove.stackli.me/catalog.json` 检查更新；首次发布前接口不可用时，仍可使用内置 Sentra。更换部署地址时按以下步骤修改。
 
 1. 指定部署域名并构建：
 
@@ -60,7 +60,7 @@ MODULE_BASE_URL=https://your-domain.example npm run build
 
 ## GitHub Actions 发布
 
-`.github/workflows/build-gh-pages.yml` 在推送 `main` 时自动执行，也可从 Actions 手动触发（选择 `main`）。流程安装锁定依赖、检查 TypeScript、运行测试，再构建并校验发布产物；校验通过才将 `dist/` 发布到 `gh-pages` 分支根目录。无需额外发布密钥 Secret。
+`.github/workflows/build-gh-pages.yml` 在推送 `master` 时自动执行，也可从 Actions 手动触发（选择 `master`）。流程安装锁定依赖、检查 TypeScript、运行测试，再构建并校验发布产物；校验通过才将 `dist/` 发布到 `gh-pages` 分支根目录。无需额外发布密钥 Secret。
 
 发布后的分支结构：
 
@@ -79,17 +79,17 @@ gh-pages/
     └── assets/                   # 与 ZIP 内文件逐字节一致
 ```
 
-沿用仓库的域名 `appocket.stackli.me`，对应地址为：
+沿用仓库的域名 `lingrove.stackli.me`，对应地址为：
 
-- App 更新目录：`https://appocket.stackli.me/catalog.json`
-- Sentra ZIP：`https://appocket.stackli.me/packages/sentra-1.0.0.zip`（版本变化后文件名相应变化）
-- Sentra 网页：`https://appocket.stackli.me/sentra/`
+- App 更新目录：`https://lingrove.stackli.me/catalog.json`
+- Sentra ZIP：`https://lingrove.stackli.me/packages/sentra-1.0.0.zip`（版本变化后文件名相应变化）
+- Sentra 网页：`https://lingrove.stackli.me/sentra/`
 
 目录为普通 `{ "modules": [...] }` JSON；模块记录包含 `webUrl`、`downloadUrl`、版本、包大小和 SHA-256。原生根据 `downloadUrl` 下载；`webUrl` 供浏览器访问。`npm run verify:release` 验证目录与所有包一一对应、哈希及大小正确、ZIP 与网页目录一致、HTML 引用的资源存在。
 
-每次运行还保存一份 `lingrove-release` Actions artifact，保留 14 天。发布保留既有的单提交策略：只替换 `gh-pages` 产物分支，`main` 源码历史不变。仓库规则须允许 Actions 的 `GITHUB_TOKEN` 写入及强推 `gh-pages`；工作流同时申请 `pages: write` 以请求 Pages 构建。
+每次运行还保存一份 `lingrove-release` Actions artifact，保留 14 天。发布保留既有的单提交策略：只替换 `gh-pages` 产物分支，`master` 源码历史不变。仓库规则须允许 Actions 的 `GITHUB_TOKEN` 写入及强推 `gh-pages`；工作流同时申请 `pages: write` 以请求 Pages 构建。
 
-仓库现有 GitHub Pages 配置为 `gh-pages` 分支根目录、自定义域名 `appocket.stackli.me`。因为 `GITHUB_TOKEN` 推送不会自动触发分支式 Pages 构建，工作流推送后通过 [GitHub Pages 构建 API](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) 显式触发构建，并等待本次产物提交构建成功；失败或超时会使工作流失败。无需切换 Pages 发布源，也不会修改 DNS 设置。
+仓库现有 GitHub Pages 配置为 `gh-pages` 分支根目录、自定义域名 `lingrove.stackli.me`。因为 `GITHUB_TOKEN` 推送不会自动触发分支式 Pages 构建，工作流推送后通过 [GitHub Pages 构建 API](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) 显式触发构建，并等待本次产物提交构建成功；失败或超时会使工作流失败。无需切换 Pages 发布源，也不会修改 DNS 设置。
 
 新增子应用时，在根 `package.json` 的 workspaces 和 `modules.json` 中加入目录名，提供该子应用的 `build` 命令、`manifest.json`，并构建到 `dist/<目录名>/`；manifest 的 `id` 与目录名保持一致。统一构建脚本会依次构建清单中的所有子应用并生成相应 ZIP、网页目录和原生内置资源。
 

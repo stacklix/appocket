@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
-const base = (process.env.MODULE_BASE_URL || 'https://appocket.stackli.me').replace(/\/$/, '');
+const base = (process.env.MODULE_BASE_URL || 'https://lingrove.stackli.me').replace(/\/$/, '');
 if (new URL(base).protocol !== 'https:') throw new Error('MODULE_BASE_URL must use HTTPS');
 const names = JSON.parse(await readFile(path.join(root, 'modules.json'), 'utf8'));
 const retire = `self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.registration.unregister();await self.clients.claim();})()));`;
