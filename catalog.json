@@ -1,0 +1,22 @@
+{
+  "modules": [
+    {
+      "id": "sentra",
+      "name": "Sentra",
+      "description": "从一句话开始，理解另一种语言。翻译、语法与地道表达。",
+      "version": "1.0.0",
+      "entry": "index.html",
+      "minHostVersion": "1.0.0",
+      "bridgeVersion": 1,
+      "stateSchemaVersion": 1,
+      "allowedOrigins": [
+        "https://api.openai.com",
+        "https://api.anthropic.com"
+      ],
+      "webUrl": "https://lingrove.stackli.me/sentra/",
+      "downloadUrl": "https://lingrove.stackli.me/packages/sentra-1.0.0.zip",
+      "size": 102271,
+      "sha256": "b399005ba8cf992ac197c7255e81574dd51569de6b745d95c8731e6ade040122"
+    }
+  ]
+}
